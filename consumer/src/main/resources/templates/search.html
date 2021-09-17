@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>search</title>
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}" media="all">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+</head>
+<body>
+<div th:replace="~{commons/commons::topbar}" }></div>
+<div class="row" id="search">
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+
+        <div>
+            <table class="layui-table" id="demo"  lay-filter="test">
+                <tr>
+                    <th lay-data="{field:'id', width:80, title: '序号', sort: true,type:'numbers'}">序号</th>
+                    <th lay-data="{field:'fileName', width:400, align: 'center',title: '文件名'}">文件名</th>
+                    <th lay-data="{field:'fileSize', width:100, title: '文件大小'}">文件大小</th>
+                    <th lay-data="{field:'fileDate', width:120, align: 'center',title: '上传时间'}">上传时间</th>
+
+                </tr>
+                <tr th:each="file,fileStat:${fileList}">
+                    <td th:text="${fileStat.index+1}"></td>
+                    <td id="fileName" th:text="${file.fileName}"></td>
+                    <td id="fileSize" th:text="${file.fileSize}+'kb'"></td>
+                    <td id="fileDate" th:text="${file.fileDate}"></td>
+                </tr>
+            </table>
+            <button class="layui-btn layui-btn-primary layui-border-cyan"><a th:href="@{/route/toMain}">返回</a></button>
+        </div>
+    </main>
+</div>
+</body>
+</html>

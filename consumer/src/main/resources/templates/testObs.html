@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>testObs</title>
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}" media="all">
+</head>
+<body>
+<div class="layui-upload">
+    <button type="button" class="layui-btn layui-btn-normal" id="testList">选择多文件</button>
+    <div class="layui-upload-list" style="max-width: 1000px;">
+        <table class="layui-table">
+            <colgroup>
+                <col>
+                <col width="150">
+                <col width="260">
+                <col width="150">
+            </colgroup>
+            <thead>
+            <tr><th>文件名</th>
+                <th>大小</th>
+                <th>上传进度</th>
+                <th>操作</th>
+            </tr></thead>
+            <tbody id="demoList"></tbody>
+        </table>
+    </div>
+    <button type="button" class="layui-btn" id="testListAction">开始上传</button>
+</div>
+<div class="layui-btn-container">
+    <button type="file" class="layui-btn layui-btn-normal" name="file" id="test8">选择文件</button>
+    <input class="layui-upload-file" type="file" accept="" name="file">
+    <span class="layui-inline layui-upload-choose"></span>
+    <button type="button" class="layui-btn" id="test9">开始上传</button>
+</div>
+<form action="/file/upload" enctype="multipart/form-data" method="post">
+    <input type="file" name="file"/>
+    <input type="submit" value="upload">
+</form>
+<form action="/file/download" enctype="multipart/form-data" method="post">
+    <input name="fileName" value="test01.txt"/>
+    <input type="submit" value="download">
+</form>
+
+<form action="/file/share" enctype="multipart/form-data" method="post">
+    <input name="fileName"/>
+    <input type="submit" value="share">
+</form>
+<table class="layui-table" id="demo"  lay-filter="test">
+    <script type="text/html" id="toolBar">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="download">下载</a>
+        <a class="layui-btn layui-btn-xs" lay-event="share">分享</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
+    </script>
+</table>
+
+<div id="demo7">
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.js"></script>
+<script th:src="@{/layui/layui.js}"></script>
+<script >
+    layui.use(['upload', 'element', 'layer'], function(){
+        var $ = layui.jquery
+            ,upload = layui.upload
+            ,element = layui.element
+            ,layer = layui.layer;
+
+        //演示多文件列表
+        var uploadListIns = upload.render({
+            elem: '#testList'
+            ,elemList: $('#demoList') //列表元素对象
+            ,url: 'http://localhost:18082/file/upload' //此处用的是第三方的 http 请求演示，实际使用时改成您自己的上传接口即可。
+            ,accept: 'file'
+            ,multiple: true
+            ,number: 3
+            ,auto: false
+            ,bindAction: '#testListAction'
+            ,choose: function(obj){
+                var that = this;
+                var files = this.files = obj.pushFile(); //将每次选择的文件追加到文件队列
+                //读取本地文件
+                obj.preview(function(index, file, result){
+                    var tr = $(['<tr id="upload-'+ index +'">'
+                        ,'<td>'+ file.name +'</td>'
+                        ,'<td>'+ (file.size/1014).toFixed(1) +'kb</td>'
+                        ,'<td><div class="layui-progress" lay-filter="progress-demo-'+ index +'"><div class="layui-progress-bar" lay-percent=""></div></div></td>'
+                        ,'<td>'
+                        ,'<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>'
+                        ,'<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>'
+                        ,'</td>'
+                        ,'</tr>'].join(''));
+
+                    //单个重传
+                    tr.find('.demo-reload').on('click', function(){
+                        obj.upload(index, file);
+                    });
+
+                    //删除
+                    tr.find('.demo-delete').on('click', function(){
+                        delete files[index]; //删除对应的文件
+                        tr.remove();
+                        uploadListIns.config.elem.next()[0].value = ''; //清空 input file 值，以免删除后出现同名文件不可选
+                    });
+
+                    that.elemList.append(tr);
+                    element.render('progress'); //渲染新加的进度条组件
+                });
+            }
+            ,done: function(res, index, upload){ //成功的回调
+                console.log(res);
+                var that = this;
+                if(res.code == 1){ //上传成功
+                var tr = that.elemList.find('tr#upload-'+ index)
+                    ,tds = tr.children();
+                tds.eq(3).html(''); //清空操作
+                delete this.files[index]; //删除文件队列已经上传成功的文件
+                return;
+                }
+                this.error(index, upload);
+            }
+            ,allDone: function(obj){ //多文件上传完毕后的状态回调
+                console.log(obj)
+            }
+            ,error: function(index, upload){ //错误回调
+                var that = this;
+                var tr = that.elemList.find('tr#upload-'+ index)
+                    ,tds = tr.children();
+                tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+            }
+            ,progress: function(n, elem, e, index){ //注意：index 参数为 layui 2.6.6 新增
+                element.progress('progress-demo-'+ index, n + '%'); //执行进度条。n 即为返回的进度百分比
+            }
+        });
+
+        //选完文件后不自动上传
+        upload.render({
+            elem: '#test8'
+            ,url: 'http://localhost:18082/file/upload' //此处配置你自己的上传接口即可
+            ,auto: false
+            ,multiple: true
+            ,bindAction: '#test9'
+            ,done: function(res){
+                layer.msg('上传成功');
+                console.log(res);
+                location.href = "main.html";
+
+            }
+        });
+
+    });
+    layui.use('table', function(){
+        var table = layui.table;
+        table.render({
+            elem: '#demo'
+            ,url:'http://localhost:18082/file/getAllFileByPage'
+            ,methods: 'get'
+            ,page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                layout: ['limit', 'count', 'prev', 'page', 'next', 'skip'] //自定义分页布局
+                //,curr: 5 //设定初始在第 5 页
+                ,groups: 5 //只显示 1 个连续页码
+                ,first: false //不显示首页
+                ,last: false //不显示尾页
+            }
+            ,cols:[
+                [
+                    {field:'id', width:80, title: 'ID', sort: true}
+                    ,{field:'fileName', width:100, title: 'fileName'}
+                    ,{field:'fileSize', width:100, title: 'fileSize'}
+                    ,{field:'fileDate', width:100, title: 'fileDate'}
+                    ,{field:'op', width:380, title: 'op',toolbar: '#toolBar'}
+                ]
+            ]
+            ,parseData: function (res) {
+                //将原始数据解析成 table 组件所规定的数据
+                console.log(res.count);
+                return {
+                    "code": res.code, //解析接口状态
+                    "msg": res.msg, //解析提示文本
+                    "count": res.count, //解析数据长度
+                    "data": res.data //解析数据列表
+                };
+            }
+            ,request: {
+                pageName: 'pageNum' // 页码的参数名称，默认：page
+                ,limitName: 'pageSize' //每页数据量的参数名，默认：limit
+            },
+        });
+        table.on('tool(test)',function (obj) {
+            var data = obj.data;
+            var e = obj.event;
+            var fileUrl;
+            if (e == 'download'){
+                var $eleForm = $("<form method='post'></form>");
+                $eleForm.attr("action","http://localhost:18082/file/download?fileName="+data.fileName);
+                $(document.body).append($eleForm);
+                $eleForm.submit();
+            }else if (e == 'share'){
+                axios.post('http://localhost:18082/file/share?fileName='+data.fileName).then(res=>{
+                    this.fileUrl = res.data.fileUrl;
+                    console.log("success");
+                    let transfer = document.createElement('input');
+                    document.body.appendChild(transfer);
+                    transfer.value = this.fileUrl;  // 这里表示想要复制的内容
+                    transfer.select();
+                    if (document.execCommand('copy')) {
+                        document.execCommand('copy');
+                    }
+                    transfer.blur();
+                    console.log('复制成功');
+                    document.body.removeChild(transfer);
+                    alert(this.fileUrl+"链接已复制到剪切板");
+
+                })
+            }else if (e == 'delete'){
+                if (confirm("你确定要删除?")){
+                    console.log(data.fileName)
+                    axios.post('http://localhost:18082/file/deleteFile?fileName='+data.fileName).then(res=>{
+                        console.log(res);
+                        location.href = "testObs.html";
+                    })
+                }
+            }
+
+        })
+    });
+    // layui.use(['laypage', 'layer'], function(){
+    //     var laypage = layui.laypage
+    //         ,layer = layui.layer;
+    //
+    //
+    //     //完整功能
+    //     laypage.render({
+    //         elem: 'demo7'
+    //         ,count: 100
+    //         ,url:'http://localhost:18088/file/getAllFileByPage'
+    //         ,layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+    //         ,jump: function(obj){
+    //             console.log(obj)
+    //         }
+    //         ,done: function (response) {
+    //             console.log(response.data.data.fileList);
+    //         }
+    //     });
+    //     //将一段数组分页展示
+    //
+    //     //测试数据
+    //     var data = [
+    //         '北京',
+    //         '上海',
+    //         '广州',
+    //         '深圳',
+    //         '杭州',
+    //         '长沙',
+    //         '合肥',
+    //         '宁夏',
+    //         '成都',
+    //         '西安',
+    //         '南昌',
+    //         '上饶',
+    //         '沈阳',
+    //         '济南',
+    //         '厦门',
+    //         '福州',
+    //         '九江',
+    //         '宜春',
+    //         '赣州',
+    //         '宁波',
+    //         '绍兴',
+    //         '无锡',
+    //         '苏州',
+    //         '徐州',
+    //         '东莞',
+    //         '佛山',
+    //         '中山',
+    //         '成都',
+    //         '武汉',
+    //         '青岛',
+    //         '天津',
+    //         '重庆',
+    //         '南京',
+    //         '九江',
+    //         '香港',
+    //         '澳门',
+    //         '台北'
+    //     ];
+    //
+    //     //调用分页
+    //     // laypage.render({
+    //     //     elem: 'demo20'
+    //     //     ,count: data.length
+    //     //     ,jump: function(obj){
+    //     //         //模拟渲染
+    //     //         document.getElementById('biuuu_city_list').innerHTML = function(){
+    //     //             var arr = []
+    //     //                 ,thisData = data.concat().splice(obj.curr*obj.limit - obj.limit, obj.limit);
+    //     //             layui.each(thisData, function(index, item){
+    //     //                 arr.push('<li>'+ item +'</li>');
+    //     //             });
+    //     //             return arr.join('');
+    //     //         }();
+    //     //     }
+    //     // });
+    //
+    // });``
+
+</script>
+</body>
+</html>

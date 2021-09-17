@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ma.provider.mapper.UserMapper">
+
+    <select id="getLoginUser" resultType="com.ma.common.pojo.User" parameterType="String">
+       select * from enterprise_netdisk.user
+       where user_name= #{userName}
+    </select>
+
+    <insert id="registerUser" parameterType="com.ma.common.pojo.User">
+        insert into enterprise_netdisk.user (uuid,user_name,nick_name,super_user,password,email,registration_date)
+        values (#{uuid},#{userName},#{nickName},#{superUser},#{password},#{email},#{registrationDate})
+    </insert>
+
+    <select id="getAllUser" resultType="com.ma.common.pojo.User">
+        select * from enterprise_netdisk.user
+    </select>
+    <update id="updateUser" parameterType="com.ma.common.pojo.User">
+        update enterprise_netdisk.user
+        <set>
+            <if test="userName != null">
+                user_name = #{userName},
+            </if>
+            <if test="nickName != null">
+                nick_name = #{nickName},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+        </set>
+        <where>
+            uuid = #{uuid}
+        </where>
+    </update>
+</mapper>

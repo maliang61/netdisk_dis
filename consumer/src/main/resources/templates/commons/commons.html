@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" media="all">
+<!--顶部导航栏,利用th:fragment提取出来,命名为topbar-->
+<!--<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0" th:fragment="topbar">-->
+<!--    <a class="navbar-brand col-sm-3 col-md-2 mr-0">云盘</a>-->
+<!--    <a class="navbar-brand col-sm-3 col-md-2 mr-1" href="../main.html">我的文件</a>-->
+<!--    <input class="form-control form-control-dark w-100" type="text"  name="fileName" placeholder="Search" aria-label="查找">-->
+<!--    <ul class="navbar-nav px-3">-->
+<!--        <li class="nav-item text-nowrap">-->
+<!--            <a class="nav-link" th:href="@{/user/logout}">退出</a>-->
+<!--        </li>-->
+<!--    </ul>-->
+<!--</nav>-->
+<body>
+<div th:fragment="topbar">
+    <ul id="app" class="layui-nav layui-bg-cyan" >
+        <li class="layui-nav-item">云盘</li>
+        <li class="layui-nav-item"><a href="../main.html">我的主页</a></li>
+        <li class="layui-nav-item">
+            <a>{{userInfo.userName}}</a>
+            <dl class="layui-nav-child">
+                <dd><a th:href="@{/user/toUpdateUser}">修改个人信息</a></dd>
+                <dd><a th:href="@{/user/logout}">退出</a></dd>
+            </dl>
+        </li>
+        <li class="layui-inline " style="float: right;margin-right: 50px;margin-top: 10px">
+                <form th:action="@{/file/queryFileNew}">
+                    <input type="text" name="fileLink" required lay-verify="required" placeholder="请输入文件名称"  autocomplete="off" class="layui-input">
+                    <button type="submit" name="submit"class="layui-btn">搜索</button>
+                </form>
+        </li>
+
+    </ul>
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.js"></script>
+<script th:src="@{/layui/layui.js}" charset="utf-8"></script>
+<script th:src="@{/js/commons.js}" charset="utf-8"></script>
+</body>
+</html>
+
+
+
+
+
+
+

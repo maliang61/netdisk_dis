@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ma.provider.mapper.FileLinkMapper">
+
+    <select id="getFileLink" resultType="String" parameterType="String">
+       select file_link from enterprise_netdisk.file_link
+       where file_name= #{fileName}
+    </select>
+    <select id="getAllFile" resultType="com.ma.common.pojo.FileLink" parameterType="String">
+--         根据用户名连表查询用户uuid然后完成当前用户所有文件的查询
+        select  * from enterprise_netdisk.file_link where uuid = #{uuid}
+    </select>
+    <select id="queryFile" resultType="com.ma.common.pojo.FileLink" parameterType="String">
+        select * from enterprise_netdisk.file_link where file_name = #{fileName}
+    </select>
+    <insert id="insertFile" parameterType="com.ma.common.pojo.FileLink">
+        insert into enterprise_netdisk.file_link (uuid,file_name,file_link,file_size,file_date)
+        values (#{uuid},#{fileName},#{fileLink},#{fileSize},#{fileDate})
+    </insert>
+    <select id="getAllFileLink" resultType="String" parameterType="String">
+       select file_link from enterprise_netdisk.file_link
+       where uuid= #{uuid}
+    </select>
+    <delete id="deleteFileLink" parameterType="String">
+        delete from enterprise_netdisk.file_link
+        <where>
+            file_name = #{fileName}
+        </where>
+    </delete>
+
+    <select id="getNumberOfFileLink" parameterType="String" resultType="_int">
+        select count(*) from enterprise_netdisk.file_link
+        <where>
+            file_link = #{fileLink}
+        </where>
+    </select>
+
+    <select id="queryFileNew" resultType="com.ma.common.pojo.FileLink" parameterType="String">
+        select * from enterprise_netdisk.file_link
+        <where>
+            uuid = #{uuid} and file_link = #{fileLink}
+        </where>
+    </select>
+
+    <select id="getFileSize" resultType="long" parameterType="String">
+        select sum(file_size) from enterprise_netdisk.file_link where uuid = #{uuid};
+    </select>
+</mapper>

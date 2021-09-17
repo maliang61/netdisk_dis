@@ -1,0 +1,30 @@
+version: "2"
+
+services:                        #控制image的运行方式
+  mysql:
+    build: mysql
+    image: mysql-disk:mysql
+    container_name: mysql-disk
+    restart: always
+    ports:
+      - "3304:3306"
+    command: [
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci'
+    ]
+    environment:                #在mysql初始化的时候设置登陆密码
+      MYSQL_ROOT_PASSWORD: "123456"
+      #将宿主机上的redis_data文件挂载到本容器上的/data上，达到数据持久化
+      #需要注意的是，如果volume是空的而container中的目录有内容，那么docker会将container目录中的内容拷贝到volume中
+      #但是如果volume中已经有内容，则会将container中的目录覆盖
+  redis:
+    image: redis:latest
+    container_name: redis-disk
+    restart: always
+    ports:
+    - "6380:6379"
+    volumes:
+    - "/usr/local/myredis/data:/data"
+
+
+
